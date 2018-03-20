@@ -4,7 +4,7 @@ from django.views.generic import (TemplateView, ListView, DetailView,
 from .forms import CommentForm, PostForm
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
-from blog.models import Post, Comment
+from .models import Post, Comment
 from django.utils import timezone
 from django.urls import reverse_lazy
 
@@ -20,7 +20,8 @@ class PostListView(ListView):
     #  how to be listed
     def get_queryset(self):
         #  '-' in published_date changes to descending order
-        return Post.objects.filter(published_date__lte=timezone.now).order_by('-published_date')
+        # why is the timezone.now() here and timezone.now somewhere else?
+        return Post.objects.filter(published_date__lte=timezone.now()).order_by('-published_date')
 
 
 class PostDetailView(DetailView):
@@ -53,7 +54,7 @@ class DraftListView(LoginRequiredMixin, ListView):
     model = Post
 
     def get_queryset(self):
-        return Post.objects.filter(published_date__isnull=True).order_by('create_date')
+        return Post.objects.filter(published_date__isnull=True).order_by('created_date')
 
 
 ##################################################################
@@ -92,5 +93,5 @@ def comment_approve(request, pk):
 def comment_remove(request, pk):
     comment = get_object_or_404(Comment, pk=pk)
     post_pk = comment.post.pk #  unlike 'comment_approve' need to save because if delete, the pk will be gone
-    comment.detele()
+    comment.delete()
     return redirect('post_detail', pk=post_pk)
